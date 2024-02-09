@@ -90,3 +90,11 @@
 (global-set-key [(meta down)]  'move-line-down)
 (global-set-key [(meta up)]  'move-line-up)
 
+(setq custom-file
+      (cond
+       ((eq system-type 'darwin) "/dev/null") 
+       ((eq system-type 'gnu/linux) "/dev/null")
+       ((eq system-type 'windows-nt) "nul") 
+       (t "/dev/null")))
+
+
