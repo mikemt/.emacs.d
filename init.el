@@ -4,36 +4,63 @@
  'package-archives
  '("melpa" . "http://melpa.org/packages/") t)
 
-(setq backup-inhibited t)
-(setq ring-bell-function 'ignore)
-(setq-default indent-tabs-mode nil)
-
 (column-number-mode 1)
 (global-display-line-numbers-mode t)
-(setq-default display-line-numbers-width 3)
+
+(setq
+ inhibit-splash-screen t
+ backup-inhibited t
+ ring-bell-function 'ignore
+ custom-file "~/.emacs.d/custom.el")
+
+(setq-default
+ indent-tabs-mode nil
+ display-line-numbers-width 3)
 
 (use-package evil
   :ensure t
   :config
-  (evil-mode 1))
+  (evil-mode 1)
+  (evil-set-leader 'motion (kbd "SPC"))
+  (evil-define-key 'normal 'global
+    (kbd "<leader>fs") #'save-buffer
+    (kbd "<leader>ff") #'find-file
+    (kbd "<leader>fl") #'load-file
+    (kbd "<leader>cl") #'consult-line))
 
 (use-package doom-modeline
   :ensure t
   :init (doom-modeline-mode 1)
-  (setq doom-modeline-height 22)
-  (setq doom-modeline-column-zero-based nil)
-  (setq doom-modeline-icon t)
-  (setq doom-modeline-major-mode-color-icon nil))
+  (setq
+   doom-modeline-height 22
+   doom-modeline-column-zero-based nil
+   doom-modeline-icon t
+   doom-modeline-major-mode-color-icon nil))
 
 (use-package doom-themes
   :ensure t
   :config
   (load-theme 'doom-gruvbox t)
-  (doom-themes-org-config))
+  (doom-themes-org-config)
+  (setq doom-grubox-dark-variant "hard"))
 
 (use-package format-all
   :ensure t
   :hook (before-save . format-all-buffer))
+
+(use-package marginalia
+  :ensure t
+  :bind (:map minibuffer-local-map
+              ("M-A" . marginalia-cycle))
+  :init
+  (marginalia-mode))
+
+(use-package orderless
+  :ensure t
+  :init
+  (setq
+   completion-styles '(orderless)
+   completion-category-overrides '((file (styles . (partial-completion))))))
 
 (use-package company
   :ensure t
@@ -41,23 +68,54 @@
   :config
   (global-company-mode 1))
 
+(use-package powershell
+  :ensure t
+  :mode ("\\.ps1\\'" . powershell-mode)
+  :config
+  (setq powershell-indent 2))
+
 (use-package rust-mode
   :ensure t
   :config
   (setq rust-format-on-save t))
+
+(use-package which-key
+  :ensure t
+  :init
+  (which-key-mode)
+  :config
+  (setq which-key-idle-delay 0.1))
+
+(use-package vertico
+  :init
+  (vertico-mode 1)
+  :config
+  (setq
+   vertico-count 10
+   vertico-scroll-margin 0
+   vertico-resize nil
+   vertico-cycle t))
+
+(use-package consult
+  :ensure t)
 
 (use-package swiper
   :ensure t
   :bind (("C-s" . swiper)
          ("C-r" . swiper-isearch-backward))
   :config
-  (setq swiper-action-recenter t)
-  (setq swiper-include-line-number-in-search t))
+  (setq
+   swiper-action-recenter t
+   swiper-include-line-number-in-search t))
 
 (use-package rainbow-delimiters
   :ensure t
   :hook
   (prog-mode . rainbow-delimiters-mode))
+
+(use-package savehist
+  :init
+  (savehist-mode))
 
 (defun initialize-frame (frame)
   (if (display-graphic-p frame)
@@ -95,15 +153,14 @@
   (forward-line -1)
   (indent-according-to-mode))
 
-;; keybinds
-(global-set-key [(meta down)]  'move-line-down)
-(global-set-key [(meta up)]  'move-line-up)
+(use-package general
+  :ensure t
+  :config
+  (general-define-key
+   "M-<down>" 'move-line-down
+   "M-<up>" 'move-line-up))
 
-(setq custom-file
-      (cond
-       ((eq system-type 'darwin) "/dev/null") 
-       ((eq system-type 'gnu/linux) "/dev/null")
-       ((eq system-type 'windows-nt) "nul") 
-       (t "/dev/null")))
+
+
 
 
