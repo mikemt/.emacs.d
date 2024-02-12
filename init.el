@@ -6,12 +6,15 @@
 
 (column-number-mode 1)
 (global-display-line-numbers-mode t)
+(electric-pair-mode 1)
 
 (setq
  inhibit-splash-screen t
  backup-inhibited t
  ring-bell-function 'ignore
- custom-file "~/.emacs.d/custom.el")
+ custom-file "~/.emacs.d/custom.el"
+ ispell-program-name "aspell"
+ ispell-dictionary "british")
 
 (setq-default
  indent-tabs-mode nil
@@ -26,7 +29,8 @@
     (kbd "<leader>fs") #'save-buffer
     (kbd "<leader>ff") #'find-file
     (kbd "<leader>fl") #'load-file
-    (kbd "<leader>cl") #'consult-line))
+    (kbd "<leader>cl") #'consult-line
+    (kbd "<leader>cr") #'consult-ripgrep))
 
 (use-package doom-modeline
   :ensure t
@@ -91,22 +95,13 @@
   (vertico-mode 1)
   :config
   (setq
-   vertico-count 10
+   vertico-count 15
    vertico-scroll-margin 0
    vertico-resize nil
    vertico-cycle t))
 
 (use-package consult
   :ensure t)
-
-(use-package swiper
-  :ensure t
-  :bind (("C-s" . swiper)
-         ("C-r" . swiper-isearch-backward))
-  :config
-  (setq
-   swiper-action-recenter t
-   swiper-include-line-number-in-search t))
 
 (use-package rainbow-delimiters
   :ensure t
