@@ -7,6 +7,7 @@
 (column-number-mode 1)
 (global-display-line-numbers-mode t)
 (electric-pair-mode 1)
+(global-auto-revert-mode 1)
 
 (setq
  inhibit-splash-screen t
@@ -24,11 +25,16 @@
   :ensure t
   :config
   (evil-mode 1)
-  (evil-set-leader 'motion (kbd "SPC"))
+  (evil-set-leader 'motion (kbd "SPC")) 
   (evil-define-key 'normal 'global
-    (kbd "<leader>fs") #'save-buffer
+    (kbd "<leader>fe") #'eval-buffer     
+    (kbd "<leader>fs") #'save-buffer     
     (kbd "<leader>ff") #'find-file
     (kbd "<leader>fl") #'load-file
+    (kbd "<leader>fp") #'package-install     
+    (kbd "<leader>fr") #'revert-buffer
+    (kbd "<leader>s") #'isearch-forward
+    (kbd "<leader>S") #'isearch-backward
     (kbd "<leader>cl") #'consult-line
     (kbd "<leader>cr") #'consult-ripgrep))
 
@@ -59,11 +65,29 @@
   :init
   (marginalia-mode))
 
+(use-package corfu
+  :ensure t
+  :bind ("C-." . corfu-complete)
+  :init
+  (global-corfu-mode)
+  (corfu-popupinfo-mode)
+  :config
+  (setq
+   corfu-auto t
+   corfu-min-width 3
+   corfu-quit-no-match 'separator
+   corfu-popupinfo-delay '(0.1 . 0.1))
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+
+(use-package nerd-icons-corfu
+  :ensure t)
+
 (use-package orderless
   :ensure t
   :init
   (setq
-   completion-styles '(orderless)
+   completion-styles '(orderless partial-completion basic)
+   completion-category-defaults nil
    completion-category-overrides '((file (styles . (partial-completion))))))
 
 (use-package company
@@ -101,7 +125,9 @@
    vertico-cycle t))
 
 (use-package consult
-  :ensure t)
+  :ensure t
+  :config
+  (setq consult-preview-buffer-height 15))
 
 (use-package rainbow-delimiters
   :ensure t
@@ -154,7 +180,6 @@
   (general-define-key
    "M-<down>" 'move-line-down
    "M-<up>" 'move-line-up))
-
 
 
 
