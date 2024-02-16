@@ -4,3 +4,4 @@ elpa
 server
 auto-save-list
 .cache
+.#*
