@@ -138,7 +138,7 @@
 (use-package tree-sitter
   :ensure t
   :hook 
-    ((prog-mode markdown-mode powershell-mode) . 
+    ((prog-mode powershell-mode) . 
       (lambda () (tree-sitter-mode) (tree-sitter-hl-mode))))
 
 (use-package tree-sitter-langs
