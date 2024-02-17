@@ -1,4 +1,7 @@
 ;;; init.el --- an emacs init file
+;;;
+;;;
+;;; Code:
 
 (eval-when-compile 
   (require 'use-package))
@@ -141,6 +144,13 @@
 (use-package tree-sitter-langs
   :ensure t
   :after tree-sitter)
+
+(use-package yasnippet
+  :ensure t
+  :hook
+    (prog-mode . yas-minor-mode)
+  :config
+    (yas-reload-all))
 
 (use-package rust-mode
   :ensure t
