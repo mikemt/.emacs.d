@@ -1,3 +1,4 @@
+_archive
 custom.el
 history
 elpa
@@ -5,3 +6,7 @@ server
 auto-save-list
 .cache
 .#*
+#
+copilot
+package.json
+package-lock.json

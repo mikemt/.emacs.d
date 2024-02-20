@@ -47,9 +47,26 @@
   (interactive)
   (find-file (concat (getenv "APPDATA") "/Code/User/keybindings.json")))
 
+(defun find-file-pwsh-profile ()
+  "Opens powershell.ps1"
+  (interactive)
+  (find-file
+    (concat
+        (getenv "OneDrive")
+        "/Documents/PowerShell/Microsoft.PowerShell_profile.ps1")))
+
 (use-package savehist
   :init 
     (savehist-mode))
+
+(use-package format-all
+    :ensure t
+    :commands format-all-mode
+    :hook
+        (prog-mode . format-all-mode)
+    :config
+        (setq-default format-all-formatters
+            '(("Python" ruff "--format"))))
 
 (use-package ispell
   :init 
@@ -86,6 +103,13 @@
 
 (use-package consult 
   :ensure t
+  :bind 
+    ("C-c b" . consult-buffer)
+    ("C-c s" . consult-isearch)
+    ("C-c r" . consult-ripgrep)
+    ("C-c l" . consult-line)
+    ("C-c f" . consult-find)
+    ("C-c d" . consult-dir)
   :config 
     (setq consult-preview-buffer-height 15))
 
@@ -138,7 +162,7 @@
 (use-package tree-sitter
   :ensure t
   :hook 
-    ((prog-mode powershell-mode) . 
+    ((prog-mode powershell-mode yaml-pro-mode) . 
       (lambda () (tree-sitter-mode) (tree-sitter-hl-mode))))
 
 (use-package tree-sitter-langs
@@ -188,31 +212,51 @@
   :config 
     (setq markdown-command "pandoc"))
 
+(use-package rst
+  :ensure t
+  :mode
+    ("\\.rst\\'\\|\\.rest\\'". rst-mode))
+
+(use-package yaml-mode
+  :ensure t
+  :mode
+    ("\\.yml\\'\\|\\.yaml\\'\\|/\\.condarc\\'" . yaml-mode))
+
 (use-package cape
   :bind 
     ("C-." . completion-at-point) 
   :init
-  (dolist (func '(cape-dabbrev cape-file cape-elisp-block 
-                    cape-history cape-keyword cape-dict))
-            (add-to-list 'completion-at-point-functions func)))
+    (dolist (func '(cape-dabbrev cape-file cape-elisp-block 
+                        cape-history cape-keyword cape-dict))
+        (add-to-list 'completion-at-point-functions func)))
+
+(add-to-list 'load-path "~/.emacs.d/copilot")
+(use-package copilot                    
+  :ensure nil
+  :hook
+    ((prog-mode markdown-mode) . copilot-mode)
+  :config
+    (setq copilot-indent-offset-warning-disable t))
 
 (use-package evil
   :ensure t
   :config
-  (evil-mode 1)
-  (evil-set-leader 'motion (kbd "SPC")) 
-  (evil-define-key 'normal 'global
-    (kbd "<leader>fe") #'eval-buffer     
-    (kbd "<leader>fs") #'save-buffer     
-    (kbd "<leader>ff") #'find-file
-    (kbd "<leader>fl") #'load-file
-    (kbd "<leader>fi") #'find-file-emacs-init
-    (kbd "<leader>fp") #'package-install     
-    (kbd "<leader>fr") #'revert-buffer
-    (kbd "<leader>s")  #'isearch-forward
-    (kbd "<leader>S")  #'isearch-backward
-    (kbd "<leader>cl") #'consult-line
-    (kbd "<leader>cr") #'consult-ripgrep))
+    (evil-mode 1)
+    (evil-set-leader 'motion (kbd "SPC")) 
+    (evil-define-key 'normal 'global
+        (kbd "C-e")        #'end-of-line
+        (kbd "<leader>fe") #'eval-buffer     
+        (kbd "<leader>fs") #'save-buffer     
+        (kbd "<leader>ff") #'find-file
+        (kbd "<leader>fl") #'load-file
+        (kbd "<leader>fi") #'find-file-emacs-init
+        (kbd "<leader>fp") #'package-install     
+        (kbd "<leader>fr") #'revert-buffer
+        (kbd "<leader>s")  #'isearch-forward
+        (kbd "<leader>S")  #'isearch-backward
+        (kbd "<leader>cl") #'consult-line
+        (kbd "<leader>cb") #'consult-buffer
+        (kbd "<leader>cr") #'consult-ripgrep))
 
 (use-package doom-modeline
   :ensure t
@@ -253,7 +297,6 @@
   :ensure t
   :config
   (general-define-key
-    "C-e"        'end-of-line
     "C-c e"      'find-file-emacs-init
     "M-<up>"     'windmove-up
     "M-<down>"   'windmove-down
