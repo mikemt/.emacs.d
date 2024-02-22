@@ -60,18 +60,17 @@
     (savehist-mode))
 
 (use-package format-all
-    :ensure t
-    :commands format-all-mode
-    :hook
-        (prog-mode . format-all-mode)
-    :config
-        (setq-default format-all-formatters
-            '(("Python" ruff "--format"))))
+  :ensure t
+  :commands format-all-mode
+  :hook
+    (prog-mode . format-all-mode)
+  :config
+    (setq-default format-all-formatters
+                '(("Python" ruff "--format"))))
 
 (use-package ispell
-  :init 
-    (setq ispell-program-name "aspell"
-      ispell-dictionary "british"))
+  :init
+    (setq ispell-program-name "aspell" ispell-dictionary "british"))
 
 (use-package which-key
   :ensure t
@@ -84,6 +83,15 @@
   :ensure t
   :hook 
     (prog-mode . rainbow-delimiters-mode))
+
+(use-package highlight-indent-guides
+  :ensure t
+  :hook 
+    (prog-mode . highlight-indent-guides-mode)
+  :config 
+    (setq highlight-indent-guides-method 'character
+          highlight-indent-guides-responsive 'top
+          highlight-indent-guides-auto-character-face-perc '30))
 
 (use-package orderless
   :ensure t
@@ -183,9 +191,18 @@
 
 (use-package python-mode
   :ensure t
+  :hook
+  (python-mode . (lambda ()
+                   (flycheck-select-checker 'python-ruff)))
   :config 
     (setq python-indent-offset 4
       python-shell-interpreter "ipython.exe"))
+
+(use-package ruff-format
+  :ensure t
+  :after python-mode
+  :hook
+    (python-mode . ruff-format-on-save-mode))
 
 (use-package powershell
   :ensure t
@@ -236,7 +253,10 @@
   :hook
     ((prog-mode markdown-mode) . copilot-mode)
   :config
-    (setq copilot-indent-offset-warning-disable t))
+    (setq copilot-indent-offset-warning-disable t)
+    (setq copilot-idle-delay 0.12)
+    (setq copilot-max-char -1)
+    (setq copilot-log-max 10000))
 
 (use-package evil
   :ensure t
