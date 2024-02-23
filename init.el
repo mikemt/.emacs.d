@@ -1,16 +1,18 @@
 ;;; init.el --- an emacs init file
 ;;;
+;;; Commentary:
 ;;;
 ;;; Code:
 
-(eval-when-compile 
+
+(eval-when-compile
   (require 'use-package))
 
 (require 'package)
-  (add-to-list 'package-archives 
-    '("melpa" . "http://melpa.org/packages/") t)
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.org/packages/") t)
 
-(unless package-archive-contents 
+(unless package-archive-contents
   (package-refresh-contents))
 
 (defun format-elisp-on-save ()
@@ -51,127 +53,140 @@
   "Opens powershell.ps1"
   (interactive)
   (find-file
-    (concat
-        (getenv "OneDrive")
-        "/Documents/PowerShell/Microsoft.PowerShell_profile.ps1")))
+   (concat
+    (getenv "OneDrive")
+    "/Documents/PowerShell/Microsoft.PowerShell_profile.ps1")))
+
+(defun copilot-turn-on-unless-buffer-read-only ()
+  "Turn on `copilot-mode' if the buffer is writable."
+  (unless (or buffer-read-only (not (buffer-file-name (current-buffer))))
+    (copilot-mode 1)))
 
 (use-package savehist
-  :init 
-    (savehist-mode))
+  :init
+  (savehist-mode))
 
 (use-package format-all
   :ensure t
   :commands format-all-mode
   :hook
-    (prog-mode . format-all-mode)
+  (prog-mode . format-all-mode)
   :config
-    (setq-default format-all-formatters
+  (setq-default format-all-formatters
                 '(("Python" ruff "--format"))))
 
 (use-package ispell
   :init
-    (setq ispell-program-name "aspell" ispell-dictionary "british"))
+  (setq ispell-program-name "aspell" ispell-dictionary "british"))
+
+(use-package flyspell
+  :ensure t
+  :bind
+  (:map flyspell-mode-map
+        ("C-." . flyspell-correct-word-before-point))
+  :hook
+  ((text-mode . flyspell-mode)
+   (prog-mode . flyspell-prog-mode)))
 
 (use-package which-key
   :ensure t
-  :init 
-    (which-key-mode)
+  :init
+  (which-key-mode)
   :config
-    (setq which-key-idle-delay 0.1))
+  (setq which-key-idle-delay 0.1))
 
 (use-package rainbow-delimiters
   :ensure t
-  :hook 
-    (prog-mode . rainbow-delimiters-mode))
+  :hook
+  (prog-mode . rainbow-delimiters-mode))
 
 (use-package highlight-indent-guides
   :ensure t
-  :hook 
-    (prog-mode . highlight-indent-guides-mode)
-  :config 
-    (setq highlight-indent-guides-method 'character
-          highlight-indent-guides-responsive 'top
-          highlight-indent-guides-auto-character-face-perc '30))
+  :hook
+  (prog-mode . highlight-indent-guides-mode)
+  :config
+  (setq highlight-indent-guides-method 'character
+        highlight-indent-guides-responsive 'top
+        highlight-indent-guides-auto-character-face-perc '30))
 
 (use-package orderless
   :ensure t
-  :init 
-    (setq completion-styles '(orderless partial-completion basic)
-      completion-category-defaults nil
+  :init
+  (setq completion-styles '(orderless partial-completion basic)
+        completion-category-defaults nil
         completion-category-overrides '((file (styles . (partial-completion))))))
 
 (use-package vertico
   :ensure t
-  :config 
-    (vertico-mode 1)
-    (setq vertico-count 15
-      vertico-scroll-margin 0
+  :config
+  (vertico-mode 1)
+  (setq vertico-count 15
+        vertico-scroll-margin 0
         vertico-resize nil
-          vertico-cycle t))
+        vertico-cycle t))
 
-(use-package consult 
+(use-package consult
   :ensure t
-  :bind 
-    ("C-c b" . consult-buffer)
-    ("C-c s" . consult-isearch)
-    ("C-c r" . consult-ripgrep)
-    ("C-c l" . consult-line)
-    ("C-c f" . consult-find)
-    ("C-c d" . consult-dir)
-  :config 
-    (setq consult-preview-buffer-height 15))
+  :bind
+  ("C-c b" . consult-buffer)
+  ("C-c s" . consult-isearch)
+  ("C-c r" . consult-ripgrep)
+  ("C-c l" . consult-line)
+  ("C-c f" . consult-find)
+  :config
+  (setq consult-preview-buffer-height 15))
 
 (use-package marginalia
   :ensure t
-  :bind 
-    (:map minibuffer-local-map
-      ("M-A" . marginalia-cycle))
-  :init 
-    (marginalia-mode))
+  :bind
+  (:map minibuffer-local-map
+        ("M-A" . marginalia-cycle))
+  :init
+  (marginalia-mode))
 
 (use-package corfu
   :ensure t
-  :bind 
-    ("C-." . corfu-complete)
+  :bind
+  ("C-." . corfu-complete)
   :init
-    (global-corfu-mode)
-    (corfu-popupinfo-mode)
+  (global-corfu-mode)
+  (corfu-popupinfo-mode)
   :config
-    (setq
-      corfu-auto t
-        corfu-min-width 1
-          corfu-quit-no-match 'separator
-            corfu-auto-delay 0
-              corfu-auto-prefix 1)
-    (add-to-list 
-      'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+  (setq
+   corfu-auto t
+   corfu-min-width 1
+   corfu-quit-no-match 'separator
+   corfu-auto-delay 0
+   corfu-auto-prefix 1)
+  (add-to-list
+   'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
 (use-package nerd-icons-corfu
   :ensure t)
 
 (use-package flycheck
   :ensure t
-  :init 
-    (global-flycheck-mode))
+  :init
+  (global-flycheck-mode))
 
 (use-package eglot
   :ensure t
-  :hook 
-    (python-mode . eglot-ensure)
+  :hook
+  (python-mode . eglot-ensure)
   :config
-    (setq eglot-ignored-server-capabilites 
-      '(:textDocumentSync :publishDiagnostics)) 
-    (setq eglot-connect-timeout 5000)
-    (add-to-list 'eglot-server-programs '(rust-mode .
-      ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
-    (add-to-list 'eglot-server-programs '(python-mode . 
-      ("pyright-langserver" "--stdio"))))
+  (setq eglot-ignored-server-capabilites
+        '(:textDocumentSync :publishDiagnostics))
+  (setq eglot-connect-timeout 5000)
+  (add-to-list 'eglot-server-programs '(rust-mode .
+                                                  ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
+  (add-to-list 'eglot-server-programs '(python-mode .
+                                                    ("pyright-langserver" "--stdio"))))
 
 (use-package tree-sitter
   :ensure t
-  :hook 
-    ((prog-mode powershell-mode yaml-pro-mode) . 
-      (lambda () (tree-sitter-mode) (tree-sitter-hl-mode))))
+  :hook
+  ((prog-mode powershell-mode yaml-pro-mode) .
+   (lambda () (tree-sitter-mode) (tree-sitter-hl-mode))))
 
 (use-package tree-sitter-langs
   :ensure t
@@ -180,170 +195,177 @@
 (use-package yasnippet
   :ensure t
   :hook
-    (prog-mode . yas-minor-mode)
+  (prog-mode . yas-minor-mode)
   :config
-    (yas-reload-all))
+  (yas-reload-all))
 
 (use-package rust-mode
   :ensure t
-  :config 
-    (setq rust-format-on-save t))
+  :config
+  (setq rust-format-on-save t))
 
 (use-package python-mode
   :ensure t
+  :bind
+  (:map python-mode-map
+        ("C-c C-d" . eldoc-documentation))
+
   :hook
   (python-mode . (lambda ()
-                   (flycheck-select-checker 'python-ruff)))
-  :config 
-    (setq python-indent-offset 4
-      python-shell-interpreter "ipython.exe"))
+                   (flycheck-select-checker 'python-ruff)
+                   (setq-local eldoc-documentation-function #'ignore)))
+  :config
+  (setq python-shell-interpreter "ipython.exe"))
 
 (use-package ruff-format
   :ensure t
   :after python-mode
   :hook
-    (python-mode . ruff-format-on-save-mode))
+  (python-mode . ruff-format-on-save-mode))
 
 (use-package powershell
   :ensure t
-  :mode 
-    ("\\.ps1\\'" . powershell-mode)
-  :config 
-    (setq powershell-indent 2))
+  :mode
+  ("\\.ps1\\'" . powershell-mode)
+  :config
+  (setq powershell-indent 2))
 
 (use-package conda
   :ensure t
   :init
-    (setq conda-anaconda-home (expand-file-name "~/.minconda"))
-  :hook 
-    (python-mode . 
-      (lambda ()
-        (setq conda-env-default-env "py312")
-          (conda-env-activate conda-env-default-env)))
-  :config 
-    (setq conda-env-initialize-interactive-shells t
-      conda-env-initialize-eshell t))
+  (setq conda-anaconda-home (expand-file-name "~/.minconda"))
+  :hook
+  (python-mode .
+               (lambda ()
+                 (setq conda-env-default-env "py312")
+                 (conda-env-activate conda-env-default-env)))
+  :config
+  (setq conda-env-initialize-interactive-shells t
+        conda-env-initialize-eshell t))
 
 (use-package markdown-mode
   :ensure t
-  :config 
-    (setq markdown-command "pandoc"))
+  :config
+  (setq markdown-command "pandoc"))
 
 (use-package rst
   :ensure t
   :mode
-    ("\\.rst\\'\\|\\.rest\\'". rst-mode))
+  ("\\.rst\\'\\|\\.rest\\'". rst-mode))
 
 (use-package yaml-mode
   :ensure t
   :mode
-    ("\\.yml\\'\\|\\.yaml\\'\\|/\\.condarc\\'" . yaml-mode))
+  ("\\.yml\\'\\|\\.yaml\\'\\|/\\.condarc\\'" . yaml-mode))
 
 (use-package cape
-  :bind 
-    ("C-." . completion-at-point) 
+  :bind
+  (:map cape-mode-map
+        ("C-<tab>" . cape-accept-completion)
+        ("C-<return>" . cape-accept-completion)
+        ("C-." . completion-at-point))
   :init
-    (dolist (func '(cape-dabbrev cape-file cape-elisp-block 
-                        cape-history cape-keyword cape-dict))
-        (add-to-list 'completion-at-point-functions func)))
+  (dolist (func '(cape-dabbrev cape-file cape-elisp-block
+                               cape-history cape-keyword cape-dict))
+    (add-to-list 'completion-at-point-functions func)))
 
 (add-to-list 'load-path "~/.emacs.d/copilot")
-(use-package copilot                    
+(use-package copilot
   :ensure nil
+  :bind
+  (:map copilot-mode-map
+        ("<tab>" . copilot-accept-completion)
+        ("C-<tab>" . copilot-accept-completion))
   :hook
-    ((prog-mode markdown-mode) . copilot-mode)
+  ((prog-mode markdown-mode) . copilot-mode)
+  (prog-mode . copilot-turn-on-unless-buffer-read-only)
   :config
-    (setq copilot-indent-offset-warning-disable t)
-    (setq copilot-idle-delay 0.12)
-    (setq copilot-max-char -1)
-    (setq copilot-log-max 10000))
+  (setq copilot-indent-offset-warning-disable t)
+  (setq copilot-idle-delay 0.12)
+  (setq copilot-max-char -1)
+  (setq copilot-log-max 10000))
 
 (use-package evil
   :ensure t
   :config
-    (evil-mode 1)
-    (evil-set-leader 'motion (kbd "SPC")) 
-    (evil-define-key 'normal 'global
-        (kbd "C-e")        #'end-of-line
-        (kbd "<leader>fe") #'eval-buffer     
-        (kbd "<leader>fs") #'save-buffer     
-        (kbd "<leader>ff") #'find-file
-        (kbd "<leader>fl") #'load-file
-        (kbd "<leader>fi") #'find-file-emacs-init
-        (kbd "<leader>fp") #'package-install     
-        (kbd "<leader>fr") #'revert-buffer
-        (kbd "<leader>s")  #'isearch-forward
-        (kbd "<leader>S")  #'isearch-backward
-        (kbd "<leader>cl") #'consult-line
-        (kbd "<leader>cb") #'consult-buffer
-        (kbd "<leader>cr") #'consult-ripgrep))
+  (evil-mode 1)
+  (evil-set-leader 'motion (kbd "SPC"))
+  (evil-define-key 'normal 'global
+    (kbd "C-e")        #'end-of-line
+    (kbd "<leader>fe") #'eval-buffer
+    (kbd "<leader>fs") #'save-buffer
+    (kbd "<leader>ff") #'find-file
+    (kbd "<leader>fl") #'load-file
+    (kbd "<leader>fi") #'find-file-emacs-init
+    (kbd "<leader>fp") #'package-install
+    (kbd "<leader>fr") #'revert-buffer
+    (kbd "<leader>s")  #'isearch-forward
+    (kbd "<leader>S")  #'isearch-backward
+    (kbd "<leader>cl") #'consult-line
+    (kbd "<leader>cb") #'consult-buffer
+    (kbd "<leader>cr") #'consult-ripgrep))
 
 (use-package doom-modeline
   :ensure t
-  :init 
-    (doom-modeline-mode 1)
+  :init
+  (doom-modeline-mode 1)
   :config
-    (setq 
-      doom-modeline-height 22
-        doom-modeline-column-zero-based nil
-          doom-modeline-icon t
-            doom-modeline-major-mode-color-icon nil))
+  (setq
+   doom-modeline-height 22
+   doom-modeline-column-zero-based nil
+   doom-modeline-icon t
+   doom-modeline-major-mode-color-icon nil))
 
 (use-package doom-themes
   :ensure t
   :config
-    (load-theme 'doom-gruvbox t)
-    (doom-themes-org-config)
-    (setq doom-gruvbox-dark-variant "hard"))
+  (load-theme 'doom-gruvbox t)
+  (doom-themes-org-config)
+  (setq doom-gruvbox-dark-variant "hard"))
 
 (use-package emacs
-  :config 
-    (global-display-line-numbers-mode t)
-    (column-number-mode 1)
-    (global-auto-revert-mode 1)
-    (electric-pair-mode 1)
-    (setq
-      inhibit-splash-screen t
-        backup-inhibited t
-          auto-save-default nil
-            custom-file "~/.emacs.d/custom.el"
-              ring-bell-function 'ignore
-                explicit-shell-file-name "pwsh.exe")
-    (setq-default
-      indent-tabs-mode nil
-        display-line-numbers-width 3))
+  :config
+  (global-display-line-numbers-mode t)
+  (column-number-mode 1)
+  (global-auto-revert-mode 1)
+  (electric-pair-mode 1)
+  (setq
+   inhibit-splash-screen t
+   backup-inhibited t
+   auto-save-default nil
+   custom-file "~/.emacs.d/custom.el"
+   ring-bell-function 'ignore
+   explicit-shell-file-name "pwsh.exe"
+   warning-suppress-types '((:warning . events-buffer-scrollback-size)))
+  (setq-default
+   indent-tabs-mode nil
+   display-line-numbers-width 3))
 
 (use-package general
   :ensure t
   :config
   (general-define-key
-    "C-c e"      'find-file-emacs-init
-    "M-<up>"     'windmove-up
-    "M-<down>"   'windmove-down
-    "M-<left>"   'windmove-left
-    "M-<right>"  'windmove-right
-    "C-<down>"   'move-line-down
-    "C-<up>"     'move-line-up
-    "C-<return>" 'copilot-accept-completion
-    "C-<tab>"    'copilot-accept-completion))
+   "C-c e"      'find-file-emacs-init
+   "M-<up>"     'windmove-up
+   "M-<down>"   'windmove-down
+   "M-<left>"   'windmove-left
+   "M-<right>"  'windmove-right
+   "C-<down>"   'move-line-down
+   "C-<up>"     'move-line-up
+   "S-<return>" 'copilot-accept-completion))
 
 (defun initialize-frame (frame)
   (if (display-graphic-p frame)
       (progn
-          (tool-bar-mode 0)
-            (scroll-bar-mode -1)
-              (menu-bar-mode -1)
-                (set-frame-font "CaskaydiaCove NFM-11" nil t)
-                  (set-frame-width frame 138)
-                    (set-frame-height frame 75)
-                      (set-frame-position frame 1 5)
-                        (set-frame-parameter frame 'internal-border-width 2))))
+        (tool-bar-mode 0)
+        (scroll-bar-mode -1)
+        (menu-bar-mode -1)
+        (set-frame-font "CaskaydiaCove NFM-10" nil t)
+        (set-frame-width frame 138)
+        (set-frame-height frame 75)
+        (set-frame-position frame 1 5)
+        (set-frame-parameter frame 'internal-border-width 2))))
 
 (if (daemonp)
-  (add-hook 'after-make-frame-functions #'initialize-frame)
-    (initialize-frame (selected-frame)))
-
-
-
-
-
+    (add-hook 'after-make-frame-functions #'initialize-frame)
+  (initialize-frame (selected-frame)))
