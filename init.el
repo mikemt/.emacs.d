@@ -34,6 +34,34 @@
   (forward-line -1)
   (indent-according-to-mode))
 
+(defun indent-to-next-tab-stop ()
+  "Indent the current line or region to the next tab stop."
+  (interactive)
+  (if (use-region-p)
+      (let ((start (region-beginning))
+            (end (region-end)))
+        (save-excursion
+          (goto-char start)
+          (while (< (point) end)
+            (indent-to-next-tab-stop-on-line)
+            (forward-line 1))))
+    (indent-to-next-tab-stop-on-line)))
+
+(defun indent-to-next-tab-stop-on-line ()
+  "Indent the current line to the next tab stop."
+  (let ((next-tab-stop (+ (current-indentation) (- tab-width (mod (current-indentation) tab-width)))))
+    (save-excursion
+      (move-beginning-of-line nil)
+      (delete-horizontal-space)
+      (insert (make-string next-tab-stop ?\s)))))
+
+(defun current-indentation ()
+  "Return the current line's indentation."
+  (save-excursion
+    (move-beginning-of-line nil)
+    (skip-chars-forward " \t")
+    (current-column)))
+
 (defun find-file-emacs-init ()
   "Open the init.el file."
   (interactive)
@@ -78,15 +106,6 @@
 (use-package ispell
   :init
   (setq ispell-program-name "aspell" ispell-dictionary "british"))
-
-(use-package flyspell
-  :ensure t
-  :bind
-  (:map flyspell-mode-map
-        ("C-." . flyspell-correct-word-before-point))
-  :hook
-  ((text-mode . flyspell-mode)
-   (prog-mode . flyspell-prog-mode)))
 
 (use-package which-key
   :ensure t
@@ -146,15 +165,13 @@
 
 (use-package corfu
   :ensure t
-  :bind
-  ("C-." . corfu-complete)
   :init
   (global-corfu-mode)
-  (corfu-popupinfo-mode)
+  (corfu-popupinfo-mode 1)
   :config
   (setq
    corfu-auto t
-   corfu-min-width 1
+   corfu-min-width 20
    corfu-quit-no-match 'separator
    corfu-auto-delay 0
    corfu-auto-prefix 1)
@@ -174,23 +191,34 @@
   :hook
   (python-mode . eglot-ensure)
   :config
-  (setq eglot-ignored-server-capabilites
-        '(:textDocumentSync :publishDiagnostics))
   (setq eglot-connect-timeout 5000)
   (add-to-list 'eglot-server-programs '(rust-mode .
                                                   ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
   (add-to-list 'eglot-server-programs '(python-mode .
                                                     ("pyright-langserver" "--stdio"))))
-
 (use-package tree-sitter
   :ensure t
   :hook
-  ((prog-mode powershell-mode yaml-pro-mode) .
+  ((prog-mode powershell-mode yaml-mode) .
    (lambda () (tree-sitter-mode) (tree-sitter-hl-mode))))
 
 (use-package tree-sitter-langs
   :ensure t
   :after tree-sitter)
+
+(use-package flyspell
+  :ensure t
+  :bind
+  (:map flyspell-mode-map
+        ("C-." . flyspell-correct-word-before-point))
+  :hook
+  ((text-mode . flyspell-mode)
+   (prog-mode . flyspell-prog-mode))
+  :config
+  (dolist (additional-faces
+           '(font-lock-string-face font-lock-comment-face font-lock-doc-face
+                                   tree-sitter-hl-face:comment tree-sitter-hl-face:string tree-sitter-hl-face:doc))
+    (add-to-list 'flyspell-prog-text-faces additional-faces)))
 
 (use-package yasnippet
   :ensure t
@@ -213,7 +241,13 @@
   :hook
   (python-mode . (lambda ()
                    (flycheck-select-checker 'python-ruff)
-                   (setq-local eldoc-documentation-function #'ignore)))
+                   ;;(setq-local eldoc-documentation-function #'ignore)
+                   (setq-local tab-width 4)))
+  (python-mode . (lambda ()
+                   (add-function :before-until (local 'tree-sitter-hl-face-mapping-function)
+                                 (lambda (capture-name)
+                                   (pcase capture-name
+                                     ("doc" 'font-lock-comment-face))))))
   :config
   (setq python-shell-interpreter "ipython.exe"))
 
@@ -260,10 +294,15 @@
 
 (use-package cape
   :bind
-  (:map cape-mode-map
-        ("C-<tab>" . cape-accept-completion)
-        ("C-<return>" . cape-accept-completion)
-        ("C-." . completion-at-point))
+  (("M-p p" . completion-at-point)
+   ("M-p d" . cape-dabbrev)
+   ("M-p k" . cape-keyword)
+   ("M-p \\". cape-tex)
+   ("M-p l" . cape-line)
+   ("M-p f" . cape-file)
+   ("M-p e" . cape-elisp-block)
+   ("M-p h" . cape-history)
+   ("M-p w" . cape-dict))
   :init
   (dolist (func '(cape-dabbrev cape-file cape-elisp-block
                                cape-history cape-keyword cape-dict))
@@ -274,8 +313,7 @@
   :ensure nil
   :bind
   (:map copilot-mode-map
-        ("<tab>" . copilot-accept-completion)
-        ("C-<tab>" . copilot-accept-completion))
+        ("S-<return>" . copilot-accept-completion))
   :hook
   ((prog-mode markdown-mode) . copilot-mode)
   (prog-mode . copilot-turn-on-unless-buffer-read-only)
@@ -285,12 +323,14 @@
   (setq copilot-max-char -1)
   (setq copilot-log-max 10000))
 
+
 (use-package evil
   :ensure t
   :config
   (evil-mode 1)
   (evil-set-leader 'motion (kbd "SPC"))
-  (evil-define-key 'normal 'global
+  (evil-define-key 'normal 'globalq
+    (kbd "TAB")        #'indent-for-tab-command
     (kbd "C-e")        #'end-of-line
     (kbd "<leader>fe") #'eval-buffer
     (kbd "<leader>fs") #'save-buffer
@@ -336,10 +376,17 @@
    custom-file "~/.emacs.d/custom.el"
    ring-bell-function 'ignore
    explicit-shell-file-name "pwsh.exe"
-   warning-suppress-types '((:warning . events-buffer-scrollback-size)))
+   tab-always-indent t
+   kill-emacs-query-functions nil)
   (setq-default
    indent-tabs-mode nil
-   display-line-numbers-width 3))
+   display-line-numbers-width 3)
+  (setq inhibit-warning-function
+        (lambda (type message)
+          (or (and (eq type 'deprecation)
+                   (string-match-p "events-buffer-scrollback-size" message))
+              (and (eq type 'deprecation)
+                   (string-match-p "events-buffer-config" message))))))
 
 (use-package general
   :ensure t
@@ -352,7 +399,7 @@
    "M-<right>"  'windmove-right
    "C-<down>"   'move-line-down
    "C-<up>"     'move-line-up
-   "S-<return>" 'copilot-accept-completion))
+   "M-i"        'indent-to-next-tab-stop))
 
 (defun initialize-frame (frame)
   (if (display-graphic-p frame)
