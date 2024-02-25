@@ -232,6 +232,10 @@
   :config
   (setq rust-format-on-save t))
 
+(use-package magit
+  :ensure t
+  :bind ("C-x g" . magit-status))
+
 (use-package python-mode
   :ensure t
   :bind
