@@ -190,6 +190,7 @@
   :ensure t
   :hook
   (python-mode . eglot-ensure)
+  (rust-mode . eglot-ensure)
   :config
   (setq eglot-connect-timeout 5000)
   (add-to-list 'eglot-server-programs '(rust-mode .
