@@ -90,6 +90,19 @@
   (unless (or buffer-read-only (not (buffer-file-name (current-buffer))))
     (copilot-mode 1)))
 
+(use-package general
+  :ensure t
+  :config
+  (general-define-key
+   "C-c e"      'find-file-emacs-init
+   "M-<up>"     'windmove-up
+   "M-<down>"   'windmove-down
+   "M-<left>"   'windmove-left
+   "M-<right>"  'windmove-right
+   "C-<down>"   'move-line-down
+   "C-<up>"     'move-line-up
+   "M-i"        'indent-to-next-tab-stop))
+
 (use-package savehist
   :init
   (savehist-mode))
@@ -197,6 +210,11 @@
                                                   ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
   (add-to-list 'eglot-server-programs '(python-mode .
                                                     ("pyright-langserver" "--stdio"))))
+
+(use-package eglot-booster-mode
+  :after eglot
+  :config (eglot-booster-mode))
+
 (use-package tree-sitter
   :ensure t
   :hook
@@ -392,19 +410,6 @@
                    (string-match-p "events-buffer-scrollback-size" message))
               (and (eq type 'deprecation)
                    (string-match-p "events-buffer-config" message))))))
-
-(use-package general
-  :ensure t
-  :config
-  (general-define-key
-   "C-c e"      'find-file-emacs-init
-   "M-<up>"     'windmove-up
-   "M-<down>"   'windmove-down
-   "M-<left>"   'windmove-left
-   "M-<right>"  'windmove-right
-   "C-<down>"   'move-line-down
-   "C-<up>"     'move-line-up
-   "M-i"        'indent-to-next-tab-stop))
 
 (defun initialize-frame (frame)
   (if (display-graphic-p frame)
