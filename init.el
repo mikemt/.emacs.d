@@ -352,7 +352,7 @@
   :config
   (evil-mode 1)
   (evil-set-leader 'motion (kbd "SPC"))
-  (evil-define-key 'normal 'globalq
+  (evil-define-key 'normal 'global
     (kbd "TAB")        #'indent-for-tab-command
     (kbd "C-e")        #'end-of-line
     (kbd "<leader>fe") #'eval-buffer
