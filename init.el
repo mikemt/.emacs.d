@@ -274,9 +274,16 @@
   :config
   (setq python-shell-interpreter "ipython.exe"))
 
+(use-package python-isort
+  :ensure t
+  :after python-mode
+  :hook (python-mode . python-isort-on-save-mode))
+
 (use-package ruff-format
   :ensure t
   :after python-mode
+  :config
+  (setq ruff-format-command "ruff format")
   :hook
   (python-mode . ruff-format-on-save-mode))
 
@@ -346,27 +353,48 @@
   (setq copilot-max-char -1)
   (setq copilot-log-max 10000))
 
-
 (use-package evil
   :ensure t
+  :init
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
   :config
   (evil-mode 1)
+  (evil-set-undo-system 'undo-redo)
   (evil-set-leader 'motion (kbd "SPC"))
+
   (evil-define-key 'normal 'global
-    (kbd "TAB")        #'indent-for-tab-command
-    (kbd "C-e")        #'end-of-line
     (kbd "<leader>fe") #'eval-buffer
     (kbd "<leader>fs") #'save-buffer
     (kbd "<leader>ff") #'find-file
     (kbd "<leader>fl") #'load-file
     (kbd "<leader>fi") #'find-file-emacs-init
     (kbd "<leader>fp") #'package-install
-    (kbd "<leader>fr") #'revert-buffer
+    (kbd "<leader>fr") #'revert-buffer)
+
+  (evil-define-key 'normal 'global
     (kbd "<leader>s")  #'isearch-forward
     (kbd "<leader>S")  #'isearch-backward
     (kbd "<leader>cl") #'consult-line
     (kbd "<leader>cb") #'consult-buffer
-    (kbd "<leader>cr") #'consult-ripgrep))
+    (kbd "<leader>cr") #'consult-ripgrep)
+
+  (evil-define-key 'normal 'global
+    (kbd "TAB") #'indent-for-tab-command
+    (kbd "C-a") #'beginning-of-line
+    (kbd "C-e") #'end-of-line)
+
+  (evil-define-key 'insert 'evil-insert-state-map
+    (kbd "C-c") #'evil-normal-state
+    (kbd "C-a") #'beginning-of-line
+    (kbd "C-e") #'end-of-line))
+
+(use-package evil-collection
+  :after evil
+  :ensure t
+  :config
+  (evil-collection-init))
+
 
 (use-package doom-modeline
   :ensure t
