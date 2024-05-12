@@ -389,12 +389,17 @@
     (kbd "C-a") #'beginning-of-line
     (kbd "C-e") #'end-of-line))
 
-(use-package evil-collection
+(use-package <>evil</>-collection
   :after evil
   :ensure t
   :config
   (evil-collection-init))
 
+(use-package evil-surround
+  :ensure t
+  :config
+  (global-evil-surround-mode 1)
+  (push '(?< . ("<" . ">")) evil-surround-pairs-alist))
 
 (use-package doom-modeline
   :ensure t
