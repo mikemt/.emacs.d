@@ -1,6 +1,21 @@
 ;;; init.el --- an emacs init file
 ;;;
+;;; Author: Michael Morris-Thomas <michael.morris-thomas@uwa.edu.au>
+;;; URL: https://github.com/mikemt/.emacs.d
+;;; Version: 1.0
+;;; Keywords: configuration, emacs, init
+;;; License: MIT
+;;;
 ;;; Commentary:
+;;; - an evil emacs init file 
+;;; 
+;;; Compatibility:
+;;; - tested on GNU Emacs 29.2
+;;;
+;;; Usage:
+;;; - clone the repository to ~/.emacs.d
+;;; - start emacs
+;;; - if the modeline doesn't render correctly, run `M-x all-the-icons-install-fonts`
 ;;;
 ;;; Code:
 
