@@ -137,6 +137,16 @@
   :bind
   (("C-x C-r" . consult-recent-file)))
 
+(use-package bookmark
+  :ensure nil
+  :init
+  (setq bookmark-default-file (expand-file-name "bookmarks" user-emacs-directory)
+        bookmark-save-flag 1)
+  :config
+  (progn
+    (add-hook 'kill-emacs-hook #'bookmark-save)
+    (bookmark-load bookmark-default-file t t))
+
 (use-package format-all
   :ensure t
   :commands format-all-mode
@@ -147,7 +157,6 @@
   (setq-default format-all-formatters
                 '(("Python" ruff "--format"))))
 
-
 (use-package ispell
   :init
   (setq
@@ -157,10 +166,10 @@
 (use-package which-key
   :ensure t
   :init
-  (which-key-mode)
+  (setq which-key-idle-delay 0.1
+        which-key-min-display-lines 9) 
   :config
-  (setq which-key-min-display-lines 9)
-  (setq which-key-idle-delay 0.1))
+  (which-key-mode))
 
 (use-package rainbow-delimiters
   :ensure t
