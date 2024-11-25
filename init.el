@@ -151,10 +151,8 @@
 (use-package ispell
   :init
   (setq
-   ispell-program-name "C:/msys64/mingw64/bin/hunspell"
-   ispell-dictionary "en_US"
-   ispell-personal-dictionary (expand-file-name "~/.hunspell_en_US")
-   ispell-extra-args '("-d" "en_US" "-a")))
+   ispell-program-name "C:/msys64/usr/bin/aspell"
+   ispell-extra-args '("--lang=en_US" "--encoding=utf-8")))
 
 (use-package which-key
   :ensure t
