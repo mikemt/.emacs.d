@@ -404,16 +404,22 @@
  :hook
   ((org-mode . (lambda ()
                  (evil-define-key 'normal org-mode-map
-                   (kbd "C-c c") 'citar-insert-citation
-                   (kbd "C-c b") 'citar-insert-bibliography
-                   (kbd "C-c r") 'citar-refresh
-                   (kbd "C-c s") 'citar-open)))
+                   (kbd "<leader> t c") 'citar-insert-citation
+                   (kbd "<leader> t b") 'citar-insert-bibtex
+                   (kbd "<leader> t r") 'citar-refresh
+                   (kbd "<leader> t s") 'citar-open)))
    (TeX-mode . (lambda ()
                  (evil-define-key 'normal TeX-mode-map
-                   (kbd "C-c c") 'citar-insert-citation
-                   (kbd "C-c b") 'citar-insert-bibliography
-                   (kbd "C-c r") 'citar-refresh
-                   (kbd "C-c s") 'citar-open)))))
+                   (kbd "<leader> t c") 'citar-insert-citation
+                   (kbd "<leader> t b") 'citar-insert-bibtex
+                   (kbd "<leader> t r") 'citar-refresh
+                   (kbd "<leader> t s") 'citar-open)))
+   (bibtex-mode . (lambda ()
+                    (evil-define-key 'normal bibtex-mode-map
+                      (kbd "<leader> t c") 'citar-insert-citation
+                      (kbd "<leader> t b") 'citar-insert-bibtex
+                      (kbd "<leader> t r") 'citar-refresh
+                      (kbd "<leader> t s") 'citar-open)))))
 
 (use-package org-download
   :ensure t
