@@ -33,8 +33,7 @@
 
 (defun format-elisp-on-save ()
   (when (eq major-mode 'emacs-lisp-mode)
-    (indent-region (point-min) (point-max))))
-
+  (indent-region (point-min) (point-max))))
 (defun _move-line-up ()
   "Move up the current line."
   (interactive)
@@ -145,7 +144,7 @@
   :config
   (progn
     (add-hook 'kill-emacs-hook #'bookmark-save)
-    (bookmark-load bookmark-default-file t t))
+    (bookmark-load bookmark-default-file t t)))
 
 (use-package format-all
   :ensure t
@@ -265,9 +264,9 @@
   ((prog-mode powershell-mode yaml-mode) .
    (lambda () (tree-sitter-mode) (tree-sitter-hl-mode))))
 
-;;(use-package tree-sitter-langs
-;;  :ensure t
-;;  :after tree-sitter)
+(use-package tree-sitter-langs
+  :ensure t
+  :after tree-sitter)
 
 (use-package flyspell
   :ensure t
