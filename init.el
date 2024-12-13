@@ -20,6 +20,10 @@
 ;;; Code:
 
 (setenv "LANG" "en_US.UTF-8")
+(set-language-environment "UTF-8")
+(prefer-coding-system 'utf-8)
+
+(server-start)
 
 (require 'package)
 (add-to-list 'package-archives
@@ -28,12 +32,24 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
-(when (eq system-type 'windows-nt)
-  (add-to-list 'exec-path (concat (getenv "USERPROFILE") "/scoop/shims")))
+(use-package exec-path-from-shell
+  :ensure t
+  :config
+  (pcase system-type
+    ('darwin
+     (let ((brew-path (if (file-directory-p "/opt/homebrew/bin")
+                         "/opt/homebrew/bin"
+                       "/usr/local/bin")))
+       (add-to-list 'exec-path brew-path)
+       (setenv "PATH" (concat brew-path ":" (getenv "PATH")))
+       (exec-path-from-shell-copy-envs '("PATH" "MANPATH" "PYTHONPATH"))))
+    ('windows-nt
+     (add-to-list 'exec-path (expand-file-name "~/scoop/shims")))))
 
 (defun format-elisp-on-save ()
   (when (eq major-mode 'emacs-lisp-mode)
   (indent-region (point-min) (point-max))))
+
 (defun _move-line-up ()
   "Move up the current line."
   (interactive)
@@ -158,9 +174,11 @@
 
 (use-package ispell
   :init
-  (setq
-   ispell-program-name "C:/msys64/usr/bin/aspell"
-   ispell-extra-args '("--lang=en_US" "--encoding=utf-8")))
+  (setq ispell-program-name
+        (if (eq system-type 'windows-nt)
+            "C:/msys64/usr/bin/aspell"
+          "aspell")
+        ispell-extra-args '("--lang=en_US" "--encoding=utf-8")))
 
 (use-package which-key
   :ensure t
@@ -248,15 +266,22 @@
   (setq eglot-connect-timeout nil)
   (setq eglot-autoshutdown t)
   (setq eglot-sync-connect nil)
-  (setq eglot-ignored-server-capabilities '(:hoverProvider :documentLinkProvider :inlayHintProvider :documentOnTypeFormattingProvider))
+  (setq eglot-ignored-server-capabilities 
+    '(:hoverProvider :documentLinkProvider :inlayHintProvider :documentOnTypeFormattingProvider))
   (add-to-list 'eglot-server-programs '(rust-mode .
-                                                  ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
-  (add-to-list 'eglot-server-programs '(python-mode .
-                                                    ("pyright-langserver" "--stdio"))))
+    ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
+  (let ((pyright-path (cond
+    ((eq system-type 'windows-nt)
+      (concat (getenv "USERPROFILE") "\\.local\\bin\\pyright-langserver"))
+    ((eq system-type 'darwin)
+      (expand-file-name "~/.local/bin/pyright-langserver"))
+                      (t "pyright-langserver"))))
+    (add-to-list 'eglot-server-programs
+      `(python-mode . (,pyright-path "--stdio")))))
 
-(use-package eglot-booster-mode
-  :after eglot
-  :config (eglot-booster-mode))
+;;(use-package eglot-booster-mode
+;;  :after eglot
+;;  :config (eglot-booster-mode))
 
 (use-package tree-sitter
   :ensure t
@@ -360,7 +385,7 @@
   :hook
   (python-mode .
                (lambda ()
-                 (setq conda-env-default-env "py312")
+                 (setq conda-env-default-env "py312_dev")
                  (conda-env-activate conda-env-default-env)))
   :config
   (setq conda-env-initialize-interactive-shells t
@@ -402,13 +427,19 @@
      (python . t)
      (jupyter . t))))
 
+
 (use-package citar
   :ensure t
   :custom
-  (citar-bibliography 
-    (append 
-      (list (concat (getenv "OneDrive") "/notes/papers/bibliography.bib"))
-      (directory-files default-directory t "\\.bib$")))
+  (citar-bibliography
+   (append
+    (list
+     (cond
+      ((eq system-type 'windows-nt)
+       (concat (getenv "OneDrive") "/notes/papers/bibliography.bib"))
+      ((eq system-type 'darwin)
+       (expand-file-name "~/Library/CloudStorage/OneDrive-Personal/notes/papers/bibliography.bib"))))
+    (directory-files default-directory t "\\.bib$")))
  :hook
   ((org-mode . (lambda ()
                  (evil-define-key 'normal org-mode-map
@@ -437,10 +468,19 @@
   :bind
   ("C-M-y" . org-download-clipboard))
 
-(use-package auctex
-  :ensure t
-  :defer t
-  :hook (LaTeX-mode . turn-on-reftex))
+(use-package tex-site
+  :ensure auctex
+  :mode ("\\.tex\\'" . LaTeX-mode))
+
+(use-package latex
+  :after tex-site
+  :config
+  (setq TeX-auto-save t
+        TeX-parse-self t
+        TeX-save-query nil)
+  (setq-default TeX-master nil)
+  (add-hook 'LaTeX-mode-hook #'turn-on-reftex)
+  (add-hook 'LaTeX-mode-hook #'turn-on-cdlatex))
 
 (use-package cdlatex
   :ensure t
@@ -466,7 +506,7 @@
 ;;                              cape-history cape-keyword cape-dict))
 ;;   (add-to-list 'completion-at-point-functions func))))
 
-(add-to-list 'load-path "~/.emacs.d/copilot")
+(add-to-list 'load-path "~/.emacs.d/copilot.el")
 (use-package copilot
   :ensure nil
   :bind
@@ -540,6 +580,22 @@
   (global-evil-surround-mode 1)
   (push '(?< . ("<" . ">")) evil-surround-pairs-alist))
 
+(use-package all-the-icons
+  :if (display-graphic-p))
+
+
+(use-package dired
+  :config
+  (use-package treemacs-icons-dired
+    :ensure t
+    :if (display-graphic-p)
+    :config (treemacs-icons-dired-mode)))
+
+;;(use-package all-the-icons-dired
+;;  :ensure t
+;;  :hook (dired-mode . all-the-icons-dired-mode)
+;;  :config (setq all-the-icons-dired-monochrome nil))
+
 (use-package doom-modeline
   :ensure t
   :init
@@ -570,9 +626,14 @@
    auto-save-default nil
    custom-file "~/.emacs.d/custom.el"
    ring-bell-function 'ignore
-   explicit-shell-file-name "pwsh.exe"
+   explicit-shell-file-name (if (eq system-type 'windows-nt) "pwsh.exe" nil)
    tab-always-indent t
-   kill-emacs-query-functions nil)
+   kill-emacs-query-functions nil
+   mac-command-modifier (if (eq system-type 'darwin) 'meta 'none)
+   mac-option-modifier (if (eq system-type 'darwin) 'super 'none)
+   mac-control-modifier 'control
+   mac-function-modifier (if (eq system-type 'darwin) 'hyper 'none)))
+
   (setq-default
    indent-tabs-mode nil
    display-line-numbers-width 3)
@@ -581,7 +642,7 @@
           (or (and (eq type 'deprecation)
                    (string-match-p "events-buffer-scrollback-size" message))
               (and (eq type 'deprecation)
-                   (string-match-p "events-buffer-config" message))))))
+                   (string-match-p "events-buffer-config" message)))))
 
 (defun initialize-frame (frame)
   (if (display-graphic-p frame)
@@ -589,10 +650,18 @@
         (tool-bar-mode 0)
         (scroll-bar-mode -1)
         (menu-bar-mode -1)
-        (set-frame-font "CaskaydiaCove NFM-10" nil t)
+        (set-frame-font "CaskaydiaCove Nerd Font Mono:size=12" nil t)
+        ;;(set-frame-font "CaskaydiaCove NFM-10" nil t)
         (set-frame-width frame 138)
         (set-frame-height frame 75)
-        (set-frame-position frame 1 5)
+        (let ((screen-width (display-pixel-width))
+              (screen-height (display-pixel-height))
+              (frame-width (* (frame-char-width) 138))
+              (frame-height (* (frame-char-height) 75)))
+          ;; Center the frame
+          (set-frame-position frame
+                              (/ (- screen-width frame-width) 2)
+                              (/ (- screen-height frame-height) 2)))
         (set-frame-parameter frame 'internal-border-width 2))))
 
 (if (daemonp)
